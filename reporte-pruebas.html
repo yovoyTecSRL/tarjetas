@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/bcr-favicon.png">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <title>Reporte de Pruebas - Banco de Costa Rica</title>
+    <meta name="viewport" content="width=500, initial-scale=1">
+    <style>
+        body { background: #f9fafc; font-family: Roboto, Arial, sans-serif; margin:0; }
+        .header { background: #002b7f; color: #fff; padding: 18px 0; text-align: center; font-size: 1.2em; }
+        .reporte { max-width: 420px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px #002b7f22; padding: 24px; }
+        .estadistica { font-size: 1.1em; margin-bottom: 18px; }
+        .detalles { background: #e3eafc; border-radius: 8px; padding: 12px; margin-bottom: 18px; }
+        .recomendaciones { background: #fff3e0; border-radius: 8px; padding: 12px; }
+        button {
+            background: #1565c0;
+            color: #fff;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 6px 4px 12px 0;
+        }
+        button:hover { background: #ce1126; }
+        .back-button { 
+            position: fixed; top: 20px; left: 20px; 
+            background: rgba(0, 43, 127, 0.9); color: white; 
+            padding: 10px 15px; border-radius: 25px; 
+            text-decoration: none; font-weight: 500; 
+            transition: all 0.3s ease; z-index: 100; 
+            display: flex; align-items: center; gap: 8px; 
+        }
+        .back-button:hover { 
+            background: rgba(206, 17, 38, 0.9); 
+            transform: translateX(-3px); 
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-button">← Volver al Chat</a>
+    <div class="header">Reporte de Pruebas Automáticas<br><span style="font-size:0.9em;">Banco de Costa Rica</span></div>
+    <div class="reporte">
+        <div class="estadistica" id="estadistica"></div>
+        <button onclick="mostrarDetalles()">Ver detalles</button>
+        <button onclick="mostrarRecomendaciones()">Ver recomendaciones</button>
+        <div class="detalles" id="detalles" style="display:none;"></div>
+        <div class="recomendaciones" id="recomendaciones" style="display:none;"></div>
+    </div>
+    <script>
+        const reporte = JSON.parse(localStorage.getItem('reportePruebasBCR') || '{"total":0,"fallos":0,"detalles":[]}');
+        document.getElementById('estadistica').innerHTML = `
+            <b>Total de pruebas:</b> ${reporte.total}<br>
+            <span style="color:green;"><b>Éxitos:</b> ${reporte.total - reporte.fallos}</span> &nbsp; 
+            <span style="color:red;"><b>Fallos:</b> ${reporte.fallos}</span>
+        `;
+        function mostrarDetalles() {
+            document.getElementById('detalles').style.display = '';
+            document.getElementById('recomendaciones').style.display = 'none';
+            document.getElementById('detalles').innerHTML = reporte.detalles && reporte.detalles.length
+                ? reporte.detalles.map((d,i) => `<b>Prueba ${i+1}:</b> ${d}`).join('<br>')
+                : 'No hay detalles individuales disponibles.';
+        }
+        function mostrarRecomendaciones() {
+            document.getElementById('detalles').style.display = 'none';
+            document.getElementById('recomendaciones').style.display = '';
+            
+            // Intentar obtener recomendaciones del servidor
+            fetch('/recommendations')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '';
+                    data.recommendations.forEach(category => {
+                        html += `<h4>${category.category}</h4><ul>`;
+                        category.items.forEach(item => {
+                            html += `<li>${item}</li>`;
+                        });
+                        html += '</ul>';
+                    });
+                    document.getElementById('recomendaciones').innerHTML = html;
+                })
+                .catch(error => {
+                    // Fallback a recomendaciones estáticas
+                    document.getElementById('recomendaciones').innerHTML = `
+                        <h4>Recomendaciones Generales</h4>
+                        <ul>
+                            <li>Verifica que todos los campos del formulario estén correctamente validados.</li>
+                            <li>Mejora la experiencia visual en dispositivos móviles.</li>
+                            <li>Implementa validación real en el backend para producción.</li>
+                            <li>Agrega logs de auditoría para cada solicitud.</li>
+                            <li>Conecta el estado de la tarjeta a un backend real.</li>
+                        </ul>
+                    `;
+                });
+        }
+    </script>
+</body>
+</html>

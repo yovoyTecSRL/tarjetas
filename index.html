@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Banco Validación - Solicitud de Tarjeta de Crédito</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/styles.css">
+    <style>
+    </style>
+</head>
+<body>
+    <div class="banco-header">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Banco Logo" class="logo"/>
+        <h1>Banco Validación</h1>
+        <div class="bandera">
+            <div class="franja azul"></div>
+            <div class="franja blanco"></div>
+            <div class="franja rojo"></div>
+            <div class="franja blanco"></div>
+            <div class="franja azul"></div>
+        </div>
+        <div class="sub">Solicita tu tarjeta de crédito en minutos</div>
+    </div>
+
+    <!-- Menú desplegable compacto -->
+    <div class="menu-container">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <span>📋 Herramientas</span>
+            <span class="menu-arrow">▼</span>
+        </button>
+        <div class="menu-dropdown" id="menuDropdown">
+            <a href="./pruebas-automaticas" class="menu-item">🧪 Pruebas Automáticas</a>
+            <a href="./reporte-pruebas" class="menu-item">📊 Reportes</a>
+            <button onclick="mostrarGuiaChat()" class="menu-item">🤖 Guía con IA</button>
+            <button onclick="ejecutarPruebasExhaustivas()" class="menu-item">🔬 Análisis IA</button>
+            <button onclick="ejecutarPruebas()" class="menu-item">⚡ Pruebas Rápidas</button>
+        </div>
+    </div>
+
+    <!-- Modal para Pruebas Exhaustivas -->
+    <div id="pruebasModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🤖 IA Ejecutando Pruebas Exhaustivas</h3>
+            </div>
+            <div class="modal-body">
+                <div class="ai-analysis-progress">
+                    <div class="progress-spinner"></div>
+                    <p id="progress-text">Iniciando análisis de seguridad...</p>
+                    <div class="progress-details">
+                        <small id="progress-detail">Preparando entorno de pruebas...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Guía de Chat IA -->
+    <div id="guiaModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🤖 Asistente Virtual BCR</h3>
+                <span class="close" onclick="cerrarGuiaChat()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="chatGuia" class="chat-guia">
+                    <div class="message bot">
+                        <p>¡Hola! Soy tu asistente virtual del Banco de Costa Rica. ¿En qué puedo ayudarte?</p>
+                        <small>Puedes preguntarme sobre:</small>
+                        <ul>
+                            <li>Cómo llenar el formulario de solicitud</li>
+                            <li>Requisitos para tarjetas de crédito</li>
+                            <li>Documentos necesarios</li>
+                            <li>Proceso de validación</li>
+                        </ul>
+                    </div>
+                </div>
+                <form id="guiaForm" class="guia-form">
+                    <input type="text" id="guiaInput" placeholder="Escribe tu pregunta..." autocomplete="off" required />
+                    <button type="submit">Enviar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tarjeta-demo">
+            <div class="chip"></div>
+            <div class="info">
+                <span>Tarjeta de Crédito</span>
+                <strong>Banco Validación</strong>
+            </div>
+            <img src="https://cdn-icons-png.flaticon.com/512/196/196578.png" alt="Visa" width="38"/>
+        </div>
+        <div class="chat" id="chat"></div>
+        <form id="chatForm">
+            <input type="text" id="input" placeholder="Escribe tu respuesta..." autocomplete="off" required />
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="estado-tarjeta" class="estado-tarjeta"></div>
+    </div>
+    <div class="footer">
+        &copy; 2025 Banco Validación. Todos los derechos reservados.
+    </div>
+    <div id="resultados-pruebas" style="margin-top:18px; color:#222; font-size:1.05em;"></div>
+    <script src="./js/chat.js"></script>
+    <script>
+        // Función para manejar el menú desplegable
+        function toggleMenu() {
+            const dropdown = document.getElementById('menuDropdown');
+            const arrow = document.querySelector('.menu-arrow');
+            
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                arrow.textContent = '▼';
+            } else {
+                dropdown.style.display = 'block';
+                arrow.textContent = '▲';
+            }
+        }
+        
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const menuContainer = document.querySelector('.menu-container');
+            const dropdown = document.getElementById('menuDropdown');
+            
+            if (!menuContainer.contains(event.target)) {
+                dropdown.style.display = 'none';
+                document.querySelector('.menu-arrow').textContent = '▼';
+            }
+        });
+        
+        // Sistema de Guía de Chat IA
+        let guiaChat = null;
+        
+        function mostrarGuiaChat() {
+            document.getElementById('guiaModal').style.display = 'block';
+            if (!guiaChat) {
+                guiaChat = new GuiaChatIA();
+            }
+        }
+        
+        function cerrarGuiaChat() {
+            document.getElementById('guiaModal').style.display = 'none';
+        }
+        
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('guiaModal');
+            if (event.target === modal) {
+                cerrarGuiaChat();
+            }
+        }
+        
+        class GuiaChatIA {
+            constructor() {
+                this.chatContainer = document.getElementById('chatGuia');
+                this.form = document.getElementById('guiaForm');
+                this.input = document.getElementById('guiaInput');
+                this.responses = this.getKnowledgeBase();
+                
+                this.init();
+            }
+            
+            init() {
+                this.form.addEventListener('submit', (e) => this.handleGuiaSubmit(e));
+            }
+            
+            async handleGuiaSubmit(e) {
+                e.preventDefault();
+                const message = this.input.value.trim();
+                if (!message) return;
+                
+                this.addGuiaMessage(message, 'user');
+                this.input.value = '';
+                
+                // Mostrar indicador de escritura
+                this.addGuiaMessage('El asistente está escribiendo...', 'bot typing');
+                
+                try {
+                    const response = await fetch('/chat-guia', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Remover indicador de escritura
+                    const typingMessages = this.chatContainer.querySelectorAll('.typing');
+                    typingMessages.forEach(msg => msg.remove());
+                    
+                    this.addGuiaMessage(data.response, 'bot');
+                } catch (error) {
+                    // Remover indicador de escritura
+                    const typingMessages = this.chatContainer.querySelectorAll('.typing');
+                    typingMessages.forEach(msg => msg.remove());
+                    
+                    this.addGuiaMessage('Lo siento, hubo un error. Por favor intenta de nuevo.', 'bot');
+                }
+            }
+            
+            addGuiaMessage(text, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.innerHTML = `<p>${text}</p>`;
+                this.chatContainer.appendChild(messageDiv);
+                this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+            }
+            
+            getKnowledgeBase() {
+                return {
+                    'formulario': 'Para llenar el formulario correctamente: 1) Ingresa tu nombre completo (1-2 nombres + 2 apellidos), 2) Tu cédula de 9-10 dígitos, 3) Teléfono de 8 dígitos empezando con 2,6,7 u 8, 4) Dirección completa para entrega.',
+                    'requisitos': 'Requisitos para tarjeta BCR: Mayor de edad, cédula vigente, ingresos demostrables mínimos ₡300,000, no estar en centrales de riesgo, residir en Costa Rica.',
+                    'documentos': 'Documentos necesarios: Cédula de identidad vigente, comprobante de ingresos (colillas, constancia patronal), comprobante de domicilio (recibo de servicios).',
+                    'validacion': 'El proceso de validación incluye: verificación en CCSS, consulta en centrales de riesgo, validación en sistema BCR, y confirmación en Ministerio de Hacienda.',
+                    'tiempo': 'El proceso toma aproximadamente 2-3 minutos. La tarjeta se entrega en 24-48 horas hábiles una vez aprobada.',
+                    'credito': 'El límite de crédito inicial es de ₡500,000 a ₡2,000,000 dependiendo de tus ingresos y historial crediticio.',
+                    'ayuda': 'Si necesitas ayuda adicional, puedes contactar al 2295-9595 o visitar cualquier sucursal BCR.'
+                };
+            }
+            
+            getAIResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // Buscar palabras clave en el mensaje
+                for (const [key, response] of Object.entries(this.responses)) {
+                    if (lowerMessage.includes(key) || 
+                        (key === 'formulario' && (lowerMessage.includes('llenar') || lowerMessage.includes('completar'))) ||
+                        (key === 'requisitos' && lowerMessage.includes('requisito')) ||
+                        (key === 'documentos' && lowerMessage.includes('documento')) ||
+                        (key === 'validacion' && (lowerMessage.includes('valida') || lowerMessage.includes('proceso'))) ||
+                        (key === 'tiempo' && (lowerMessage.includes('tiempo') || lowerMessage.includes('demora') || lowerMessage.includes('cuanto'))) ||
+                         (key === 'credito' && (lowerMessage.includes('limite') || lowerMessage.includes('monto'))) ||
+                        (key === 'ayuda' && (lowerMessage.includes('contacto') || lowerMessage.includes('telefono')))) {
+                        return response;
+                    }
+                }
+                
+                // Respuestas inteligentes basadas en contexto
+                if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
+                    return '¡Hola! Soy tu asistente virtual del BCR. ¿En qué puedo ayudarte con tu solicitud de tarjeta de crédito?';
+                }
+                
+                if (lowerMessage.includes('gracias')) {
+                    return '¡De nada! Estoy aquí para ayudarte. ¿Tienes alguna otra pregunta sobre el proceso?';
+                }
+                
+                if (lowerMessage.includes('problema') || lowerMessage.includes('error')) {
+                    return 'Si tienes problemas técnicos, intenta refrescar la página. Si el problema persiste, contacta al 2295-9595.';
+                }
+                
+                // Respuesta por defecto con sugerencias
+                return 'No estoy seguro de cómo ayudarte con eso específicamente. ¿Podrías preguntarme sobre: formulario, requisitos, documentos, validación, tiempo de proceso, o límites de crédito?';
+            }
+        }
+
+        // Funciones adicionales para compatibilidad
+        function ejecutarPruebas() {
+            // Mostrar modal de progreso
+            mostrarModalPruebas();
+            
+            fetch('/test-automated')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('resultados-pruebas').innerHTML = `
+                        <div class="test-results">
+                            <h4>✅ Resultados de Pruebas Automáticas:</h4>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <span class="stat-number">${data.total_tests}</span>
+                                    <span class="stat-label">Total</span>
+                                </div>
+                                <div class="stat-card success">
+                                    <span class="stat-number">${data.passed}</span>
+                                    <span class="stat-label">Exitosas</span>
+                                </div>
+                                <div class="stat-card error">
+                                    <span class="stat-number">${data.failed}</span>
+                                    <span class="stat-label">Fallidas</span>
+                                </div>
+                            </div>
+                            <button onclick="openTestWindow()" class="result-button">
+                                📊 Ver Detalles Completos
+                            </button>
+                            <button onclick="ejecutarPruebasExhaustivas()" class="result-button" style="background: linear-gradient(135deg, #ff9800, #ffb74d);">
+                                🔬 Pruebas Exhaustivas con IA
+                            </button>
+                        </div>
+                    `;
+                    ocultarModalPruebas();
+                })
+                .catch(error => {
+                    console.error('Error ejecutando pruebas:', error);
+                    ocultarModalPruebas();
+                });
+        }
+
+        async function ejecutarPruebasExhaustivas() {
+            // Delegar al método del chat con manejo de errores robusto
+            if (window.bcr_chat && typeof window.bcr_chat.ejecutarPruebasExhaustivas === 'function') {
+                try {
+                    await window.bcr_chat.ejecutarPruebasExhaustivas();
+                } catch (error) {
+                    console.error('Error ejecutando pruebas exhaustivas:', error);
+                    alert('Error ejecutando las pruebas exhaustivas. Por favor, intenta de nuevo.');
+                }
+            } else {
+                console.error('Chat no inicializado o método no disponible');
+                alert('El sistema de chat no está listo. Por favor, recarga la página e intenta de nuevo.');
+            }
+        }
+
+        function mostrarModalPruebas() {
+            const modal = document.createElement('div');
+            modal.id = 'modalPruebas';
+            modal.innerHTML = `
+                <div class="modal" style="display: block;">
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="loading-animation">
+                            <div class="spinner"></div>
+                            <h3>🔬 Ejecutando Pruebas...</h3>
+                            <p>La IA está analizando todos los escenarios posibles</p>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="progressFill"></div>
+                            </div>
+                            <p id="statusText">Iniciando análisis...</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Simular progreso
+            let progress = 0;
+            const statusTexts = [
+                "Validando campos de entrada...",
+                "Probando inyección SQL...",
+                "Verificando XSS...",
+                "Analizando validaciones...",
+                "Probando casos límite...",
+                "Generando reporte final..."
+            ];
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
+                
+                document.getElementById('progressFill').style.width = progress + '%';
+                
+                const statusIndex = Math.floor((progress / 100) * statusTexts.length);
+                if (statusIndex < statusTexts.length) {
+                    document.getElementById('statusText').textContent = statusTexts[statusIndex];
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
+        function ocultarModalPruebas() {
+            const modal = document.getElementById('modalPruebas');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function verRecomendaciones() {
+            fetch('/recommendations')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<div class="recommendations"><h4>💡 Recomendaciones del Sistema:</h4>';
+                    data.recommendations.forEach(category => {
+                        html += `<div class="rec-category">
+                            <h5>${category.category}:</h5>
+                            <ul>`;
+                        category.items.forEach(item => {
+                            html += `<li>✓ ${item}</li>`;
+                        });
+                        html += '</ul></div>';
+                    });
+                    html += '</div>';
+                    document.getElementById('resultados-pruebas').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error obteniendo recomendaciones:', error);
+                });
+        }
+        
+        function openTestWindow() {
+            window.open('/pruebas-automaticas', '_blank', 'width=500,height=700');
+        }
+        
+        function openReportWindow() {
+            window.open('/reporte-pruebas', '_blank', 'width=500,height=700');
+        }
+    </script>
+</body>
+</html>

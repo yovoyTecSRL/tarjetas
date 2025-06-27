@@ -1,0 +1,24 @@
+name: bcr-form-fastapi
+
+image: mcr.microsoft.com/devcontainers/python:3.11
+
+features:
+  - ghcr.io/devcontainers/features/python:1
+
+postCreateCommand: |
+  python3 -m venv .venv
+  source .venv/bin/activate
+  pip install --upgrade pip
+  pip install -r requirements.txt || true
+  uvicorn main:app --host 0.0.0.0 --port 8001 --reload &
+
+forwardPorts:
+  - 8001
+
+portsAttributes:
+  "8001":
+    label: "FastAPI App"
+    onAutoForward: openBrowser
+
+remoteEnv:
+  PYTHONPATH: "${workspaceFolder}"
