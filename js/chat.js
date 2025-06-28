@@ -517,24 +517,26 @@ class BCRChat {
     }
 
     showGPSOptions() {
+        
         const gpsContainer = document.createElement('div');
         gpsContainer.className = 'gps-container';
         gpsContainer.innerHTML = `
             <h4>📍 Validación de Dirección con GPS</h4>
             <p>Para una entrega más precisa, puedes usar tu ubicación GPS</p>
-            <div class="gps-actions">
-                <button class="gps-button" onclick="bcr_chat.getGPSLocation()">
-                    📍 Obtener mi ubicación GPS
-                </button>
-                <button class="gps-button" onclick="bcr_chat.continueWithoutGPS()">
-                    ⏭️ Continuar sin GPS
-                </button>
+            <div class=\"gps-actions\">
+                <button class=\"gps-button\" id=\"gps-yes\">📍 Obtener mi ubicación GPS</button>
+                <button class=\"gps-button\" id=\"gps-no\">⏭️ Continuar sin GPS</button>
             </div>
-            <div id="gps-status" class="gps-status"></div>
+            <div id=\"gps-status\" class=\"gps-status\"></div>
         `;
-        
         this.chatContainer.appendChild(gpsContainer);
         this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+
+        // Event listeners en lugar de onclick inline
+        document.getElementById('gps-yes')
+            .addEventListener('click', () => this.getGPSLocation());
+        document.getElementById('gps-no')
+            .addEventListener('click', () => this.continueWithoutGPS());
     }
 
     async getGPSLocation() {
